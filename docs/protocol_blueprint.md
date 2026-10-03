@@ -80,7 +80,7 @@ Every message contains these fields:
 |---|---|---|
 | `version` | integer | Identifies the protocol version. For this project the value is `1`. |
 | `msg_type` | string | Identifies which protocol message is being sent. It must be one of the allowed message types. |
-| `request_id` | string | Gives a request or event its own identifier so a response or error can be traced back to it. |
+| `request_id` | string or null | Identifies the client request connected to the message. It is `null` for server messages that are not a response to one specific client request. |
 | `game_id` | string or null | Identifies which Tic-Tac-Toe game the message belongs to. It can be `null` before a game has started. |
 | `player_id` | string or null | Identifies the player connected to the message. It can be `null` when the message is not about one specific player. |
 | `state_version` | integer | Identifies the version of the official board state. It starts at `0` when the game begins. |
@@ -168,3 +168,71 @@ player has joined the game.
     "message": "Waiting for Player 2"
   }
 }
+
+## Message Schema 3: GAME_START
+
+**Direction:** Server -> Clients
+
+**Purpose:**  
+The server sends GAME_START after two players have successfully joined. The server
+assigns each player an ID and symbol, sends the empty board, and tells both players
+who takes the first turn.
+
+### Game Start Rules
+
+I decided that the first player who connects becomes `P1` and uses `X`.
+
+The second player becomes `P2` and uses `O`.
+
+`P1` always takes the first turn. I chose this because it keeps the starting rule
+simple and predictable instead of randomly choosing a player each game.
+
+### Field Rules
+
+| Field | Type | Rule |
+|---|---|---|
+| `version` | integer | Must be `1`. |
+| `msg_type` | string | Must be `"GAME_START"`. |
+| `request_id` | null | GAME_START is a server event sent to both players, not a response to one specific request. |
+| `game_id` | string | Official game ID created by the server. |
+| `player_id` | null | The message is sent to both players, so it is not tied to only one player. |
+| `state_version` | integer | Must be `0` because no moves have been made yet. |
+| `payload.players` | array | Contains information about both players. |
+| `payload.players[].player_id` | string | Must be `"P1"` or `"P2"`. |
+| `payload.players[].player_name` | string | Name provided when the player connected. |
+| `payload.players[].symbol` | string | Must be `"X"` for P1 or `"O"` for P2. |
+| `payload.first_turn` | string | Must be `"P1"` when the game starts. |
+| `payload.board` | array | A 3 by 3 array representing the Tic-Tac-Toe board. Empty strings mean unused spaces. |
+
+### Example
+
+```json
+{
+  "version": 1,
+  "msg_type": "GAME_START",
+  "request_id": null,
+  "game_id": "GAME-001",
+  "player_id": null,
+  "state_version": 0,
+  "payload": {
+    "players": [
+      {
+        "player_id": "P1",
+        "player_name": "Jason",
+        "symbol": "X"
+      },
+      {
+        "player_id": "P2",
+        "player_name": "Player2",
+        "symbol": "O"
+      }
+    ],
+    "first_turn": "P1",
+    "board": [
+      ["", "", ""],
+      ["", "", ""],
+      ["", "", ""]
+    ]
+  }
+}
+
