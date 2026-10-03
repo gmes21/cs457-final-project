@@ -133,3 +133,38 @@ player name, but the server is responsible for assigning the official player ID.
     "player_name": "Jason"
   }
 }
+
+## Message Schema 2: LOBBY_WAIT
+
+**Direction:** Server -> Client
+
+**Purpose:**  
+The server sends LOBBY_WAIT after the first player connects but before a second
+player has joined the game.
+
+### Field Rules
+
+| Field | Type | Rule |
+|---|---|---|
+| `version` | integer | Must be `1`. |
+| `msg_type` | string | Must be `"LOBBY_WAIT"`. |
+| `request_id` | string | Uses the request ID related to the player's connection. |
+| `game_id` | string | Identifies the game lobby created by the server. |
+| `player_id` | string | Player ID assigned by the server, such as `"P1"`. |
+| `state_version` | integer | Must be `0` because the game has not started yet. |
+| `payload.message` | string | Short message telling the player that the server is waiting for another player. |
+
+### Example
+
+```json
+{
+  "version": 1,
+  "msg_type": "LOBBY_WAIT",
+  "request_id": "REQ-001",
+  "game_id": "GAME-001",
+  "player_id": "P1",
+  "state_version": 0,
+  "payload": {
+    "message": "Waiting for Player 2"
+  }
+}
