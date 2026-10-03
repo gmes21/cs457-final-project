@@ -98,3 +98,38 @@ The general message structure is:
   "state_version": 0,
   "payload": {}
 }
+
+## Message Schema 1: CONNECT
+
+**Direction:** Client -> Server
+
+**Purpose:**  
+The client sends CONNECT when it first joins the server. The client provides a
+player name, but the server is responsible for assigning the official player ID.
+
+### Field Rules
+
+| Field | Type | Rule |
+|---|---|---|
+| `version` | integer | Must be `1`. |
+| `msg_type` | string | Must be `"CONNECT"`. |
+| `request_id` | string | Created by the client to identify this connection request. |
+| `game_id` | null | No game has been created yet. |
+| `player_id` | null | The server has not assigned a player ID yet. |
+| `state_version` | integer | Must be `0` because gameplay has not started. |
+| `payload.player_name` | string | Name the player wants to use. It cannot be empty. |
+
+### Example
+
+```json
+{
+  "version": 1,
+  "msg_type": "CONNECT",
+  "request_id": "REQ-001",
+  "game_id": null,
+  "player_id": null,
+  "state_version": 0,
+  "payload": {
+    "player_name": "Jason"
+  }
+}
