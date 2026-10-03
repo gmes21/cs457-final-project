@@ -27,3 +27,26 @@ does not change.
 
 I chose this design because both players should always receive the same official
 game state from one trusted source.
+
+## Design Decision 3: Allowed Message Types
+
+I decided to keep the protocol limited to a fixed set of message types instead of
+allowing free-form commands.
+
+The allowed message types are:
+
+- CONNECT
+- LOBBY_WAIT
+- GAME_START
+- MOVE
+- STATE_UPDATE
+- ERROR
+- DISCONNECT
+- GAME_OVER
+
+I chose these because each one represents a specific part of the game lifecycle.
+The server will reject any message type that is not listed here.
+
+I also decided that clients will never send STATE_UPDATE, GAME_START, or GAME_OVER.
+Those messages can only come from the server because the server controls the official
+game state.
