@@ -456,3 +456,63 @@ remaining player wins by forfeit.
 I included a reason in the payload so the server can tell the difference between
 an intentional quit and other connection problems later. For this project,
 `PLAYER_QUIT` is enough for a normal client disconnect.
+
+## Message Schema 8: GAME_OVER
+
+**Direction:** Server -> Clients
+
+**Purpose:**  
+The server sends GAME_OVER when the match has finished. This can happen because
+a player won, the board ended in a draw, or one player left the game.
+
+### Game Over Rules
+
+The server is the only side that decides when the game is over.
+
+I decided to use a small set of result values:
+
+- `WIN` - one player completed a winning row, column, or diagonal.
+- `DRAW` - the board is full and neither player won.
+- `FORFEIT` - one player left during an active game.
+
+For a win or forfeit, the server includes the winning player's ID. For a draw,
+there is no winner, so `winner_player_id` is `null`.
+
+### Field Rules
+
+| Field | Type | Rule |
+|---|---|---|
+| `version` | integer | Must be `1`. |
+| `msg_type` | string | Must be `"GAME_OVER"`. |
+| `request_id` | string or null | Uses the request ID that caused the game to end when one exists. |
+| `game_id` | string | Identifies the finished game. |
+| `player_id` | null | GAME_OVER is sent to both players instead of one specific player. |
+| `state_version` | integer | Final official state version of the game. |
+| `payload.result` | string | Must be `"WIN"`, `"DRAW"`, or `"FORFEIT"`. |
+| `payload.winner_player_id` | string or null | Winning player for WIN or FORFEIT. Must be `null` for a draw. |
+| `payload.board` | array | Final 3 by 3 board. |
+
+### Example
+
+```json
+{
+  "version": 1,
+  "msg_type": "GAME_OVER",
+  "request_id": "REQ-011",
+  "game_id": "GAME-001",
+  "player_id": null,
+  "state_version": 5,
+  "payload": {
+    "result": "WIN",
+    "winner_player_id": "P1",
+    "board": [
+      ["X", "O", ""],
+      ["X", "O", ""],
+      ["X", "", ""]
+    ]
+  }
+}
+```
+I included the final board so both players can see exactly how the game ended.
+The client does not decide the winner itself. It displays the final result that
+was determined by the server.
