@@ -290,7 +290,7 @@ If any of these checks fail, the server does not change the board.
     "col": 2
   }
 }
-...
+```
 I kept the MOVE payload small because the client only needs to tell the server
 where it wants to move. The client does not send a new board or decide whether
 the move was successful. That decision stays with the server.
@@ -345,7 +345,7 @@ The `state_version` increases by one after every accepted move.
     "next_turn": "P2"
   }
 }
-...
+```
 I used the same `request_id` as the accepted MOVE so it is clear which move
 caused this board update. The server sends the same official board to both
 players instead of letting each client update the game state on its own.
@@ -403,7 +403,56 @@ An ERROR does not increase `state_version`.
     "message": "It is not your turn."
   }
 }
-...
+```
 I kept the error response separate from STATE_UPDATE because an invalid request
 should not look like a successful game change. The server returns the current
 state version, but it leaves the board unchanged.
+
+## Message Schema 7: DISCONNECT
+
+**Direction:** Client -> Server
+
+**Purpose:**  
+The client sends DISCONNECT when the player intentionally leaves the game.
+The server uses this message to stop waiting for that player and handle the game
+as a player departure.
+
+### Disconnect Rules
+
+I decided to make DISCONNECT an explicit message instead of only depending on the
+TCP connection closing. This gives the server a clear reason that the player
+intentionally left the game.
+
+If a player disconnects during an active game, the server ends the game and the
+remaining player wins by forfeit.
+
+### Field Rules
+
+| Field | Type | Rule |
+|---|---|---|
+| `version` | integer | Must be `1`. |
+| `msg_type` | string | Must be `"DISCONNECT"`. |
+| `request_id` | string | Created by the client for this disconnect request. |
+| `game_id` | string or null | Identifies the game if one has already been created. |
+| `player_id` | string | Identifies the player leaving the server. |
+| `state_version` | integer | Must match the client's latest known game state. |
+| `payload.reason` | string | Short reason for leaving, such as `"PLAYER_QUIT"`. |
+
+### Example
+
+```json
+{
+  "version": 1,
+  "msg_type": "DISCONNECT",
+  "request_id": "REQ-009",
+  "game_id": "GAME-001",
+  "player_id": "P2",
+  "state_version": 3,
+  "payload": {
+    "reason": "PLAYER_QUIT"
+  }
+}
+```
+I included a reason in the payload so the server can tell the difference between
+an intentional quit and other connection problems later. For this project,
+`PLAYER_QUIT` is enough for a normal client disconnect.
