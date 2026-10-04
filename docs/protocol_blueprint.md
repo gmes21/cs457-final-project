@@ -145,6 +145,61 @@ The general message structure is:
   "payload": {}
 }
 ```
+## Design Decision 5: Connection Termination and Socket Lifecycle
+
+A connection can end normally or unexpectedly, so the server needs to handle
+both cases without leaving the game stuck.
+
+### Intentional Disconnect
+
+If a player chooses to leave, the client sends a `DISCONNECT` message before
+closing its socket.
+
+If the game is already active, the server treats this as a forfeit. The other
+player wins, and the server sends `GAME_OVER` with the result `FORFEIT`.
+
+After handling the disconnect, the server closes that player's socket and
+removes the connection from the active game.
+
+### Clean TCP Closure
+
+A client might close its socket without sending `DISCONNECT`. When this happens
+normally, TCP uses a FIN teardown.
+
+In Python, `recv()` returns `b""` when the other side has closed the connection.
+The receive loop must check for this and stop instead of continuing to call
+`recv()`.
+
+```python
+data = sock.recv(1024)
+
+if not data:
+    handle_client_disconnect(player_id)
+    break
+```
+
+I included the `if not data` check because continuing after `b""` would keep the
+receive loop running even though the client is already gone.
+
+### Unexpected Connection Loss
+
+A connection can also disappear because the client crashes or the network link
+fails. In that case, socket operations may raise an exception instead of
+returning a normal message.
+
+The server will catch connection-related errors such as:
+
+- `ConnectionResetError` when the connection is reset.
+- `BrokenPipeError` when sending to a connection that has already closed.
+- `ConnectionAbortedError` when the connection is aborted.
+
+These cases are handled the same way as an unexpected player disconnect. The
+server cleans up the socket and, if a game was active, the remaining player wins
+by forfeit.
+
+This keeps the game logic the same whether the player leaves intentionally or
+the TCP connection disappears unexpectedly.
+
 ## Message Schema 1: CONNECT
 
 **Direction:** Client -> Server
