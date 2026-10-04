@@ -349,3 +349,61 @@ The `state_version` increases by one after every accepted move.
 I used the same `request_id` as the accepted MOVE so it is clear which move
 caused this board update. The server sends the same official board to both
 players instead of letting each client update the game state on its own.
+
+## Message Schema 6: ERROR
+
+**Direction:** Server -> Client
+
+**Purpose:**  
+The server sends ERROR when it cannot accept or process a client's message.
+The error is sent only to the client that caused the problem, and the official
+game state does not change.
+
+### Error Rules
+
+I decided to include both an error code and a short message. The code gives the
+client a consistent way to identify the problem, while the message makes the
+error easier for the player to understand.
+
+Some errors that can occur are:
+
+- `MALFORMED_MESSAGE` - the message does not follow the required JSON format.
+- `UNKNOWN_MESSAGE_TYPE` - the client sent a message type the protocol does not allow.
+- `INVALID_MOVE` - the selected board position is not valid or is already used.
+- `OUT_OF_TURN` - the player tried to move when it was not their turn.
+- `STALE_STATE` - the client's state version does not match the server's current version.
+
+An ERROR does not increase `state_version`.
+
+### Field Rules
+
+| Field | Type | Rule |
+|---|---|---|
+| `version` | integer | Must be `1`. |
+| `msg_type` | string | Must be `"ERROR"`. |
+| `request_id` | string or null | Uses the request ID of the message that caused the error when available. |
+| `game_id` | string or null | Identifies the game if the client has already joined one. |
+| `player_id` | string or null | Identifies the player if one has already been assigned. |
+| `state_version` | integer | Contains the server's current state version. It does not increase because of an error. |
+| `payload.code` | string | Short error code describing what went wrong. |
+| `payload.message` | string | Human-readable explanation of the error. |
+
+### Example
+
+```json
+{
+  "version": 1,
+  "msg_type": "ERROR",
+  "request_id": "REQ-008",
+  "game_id": "GAME-001",
+  "player_id": "P2",
+  "state_version": 3,
+  "payload": {
+    "code": "OUT_OF_TURN",
+    "message": "It is not your turn."
+  }
+}
+...
+I kept the error response separate from STATE_UPDATE because an invalid request
+should not look like a successful game change. The server returns the current
+state version, but it leaves the board unchanged.
