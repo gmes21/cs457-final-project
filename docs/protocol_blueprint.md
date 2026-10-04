@@ -236,3 +236,61 @@ simple and predictable instead of randomly choosing a player each game.
   }
 }
 
+## Message Schema 4: MOVE
+
+**Direction:** Client -> Server
+
+**Purpose:**  
+The active player sends MOVE to request placing their symbol in one location on
+the board. The client is only requesting the move. The server decides if the move
+is actually allowed.
+
+### Move Rules
+
+I decided to use row and column numbers from `0` to `2` because the board is a
+3 by 3 array and this matches normal Python list indexes.
+
+Before accepting a move, the server checks:
+
+- The `game_id` belongs to an active game.
+- The `player_id` belongs to that game.
+- It is that player's turn.
+- `row` is an integer from `0` to `2`.
+- `col` is an integer from `0` to `2`.
+- The selected board position is empty.
+- The client's `state_version` matches the server's current state version.
+
+If any of these checks fail, the server does not change the board.
+
+### Field Rules
+
+| Field | Type | Rule |
+|---|---|---|
+| `version` | integer | Must be `1`. |
+| `msg_type` | string | Must be `"MOVE"`. |
+| `request_id` | string | Created by the client to identify this move request. |
+| `game_id` | string | Must identify the player's current game. |
+| `player_id` | string | Must identify the player making the move. |
+| `state_version` | integer | Must match the server's current board version. |
+| `payload.row` | integer | Must be from `0` to `2`. |
+| `payload.col` | integer | Must be from `0` to `2`. |
+
+### Example
+
+```json
+{
+  "version": 1,
+  "msg_type": "MOVE",
+  "request_id": "REQ-007",
+  "game_id": "GAME-001",
+  "player_id": "P1",
+  "state_version": 2,
+  "payload": {
+    "row": 0,
+    "col": 2
+  }
+}
+...
+I kept the MOVE payload small because the client only needs to tell the server
+where it wants to move. The client does not send a new board or decide whether
+the move was successful. That decision stays with the server.
