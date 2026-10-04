@@ -35,7 +35,7 @@ stateDiagram-v2
     GAME_START --> PLAYER_TURN: Send GAME_START / P1 takes first turn
 
     PLAYER_TURN --> EVALUATE_MOVE: Valid MOVE message received
-    PLAYER_TURN --> PLAYER_TURN: Malformed or unknown message / send ERROR
+    PLAYER_TURN --> PLAYER_TURN: Malformed message, invalid payload, or unknown message / send ERROR
     PLAYER_TURN --> PLAYER_TURN: Out-of-turn MOVE / send ERROR
     PLAYER_TURN --> GAME_OVER: Player disconnects / opponent wins by forfeit
 
