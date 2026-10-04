@@ -294,3 +294,58 @@ If any of these checks fail, the server does not change the board.
 I kept the MOVE payload small because the client only needs to tell the server
 where it wants to move. The client does not send a new board or decide whether
 the move was successful. That decision stays with the server.
+
+## Message Schema 5: STATE_UPDATE
+
+**Direction:** Server -> Clients
+
+**Purpose:**  
+The server sends STATE_UPDATE to both players after it accepts a valid move.
+This message gives both clients the newest official board and tells them whose
+turn comes next.
+
+### State Update Rules
+
+I decided that the server will send the complete board instead of only sending
+the position that changed. Since a Tic-Tac-Toe board is very small, sending all
+nine spaces keeps the client simple and makes sure both players have the same
+board.
+
+The `state_version` increases by one after every accepted move.
+
+### Field Rules
+
+| Field | Type | Rule |
+|---|---|---|
+| `version` | integer | Must be `1`. |
+| `msg_type` | string | Must be `"STATE_UPDATE"`. |
+| `request_id` | string | Matches the MOVE request that caused this update. |
+| `game_id` | string | Identifies the active game. |
+| `player_id` | string | Identifies the player whose move was accepted. |
+| `state_version` | integer | New official state version after the accepted move. |
+| `payload.board` | array | Current 3 by 3 board after the move. |
+| `payload.next_turn` | string | Must be `"P1"` or `"P2"` and identifies who moves next. |
+
+### Example
+
+```json
+{
+  "version": 1,
+  "msg_type": "STATE_UPDATE",
+  "request_id": "REQ-007",
+  "game_id": "GAME-001",
+  "player_id": "P1",
+  "state_version": 3,
+  "payload": {
+    "board": [
+      ["", "", "X"],
+      ["", "O", ""],
+      ["", "", "X"]
+    ],
+    "next_turn": "P2"
+  }
+}
+...
+I used the same `request_id` as the accepted MOVE so it is clear which move
+caused this board update. The server sends the same official board to both
+players instead of letting each client update the game state on its own.
