@@ -204,7 +204,7 @@ the TCP connection disappears unexpectedly.
 
 **Direction:** Client -> Server
 
-**Purpose:**  
+**Purpose:**
 The client sends CONNECT when it first joins the server. The client provides a
 player name, but the server is responsible for assigning the official player ID.
 
@@ -239,7 +239,7 @@ player name, but the server is responsible for assigning the official player ID.
 
 **Direction:** Server -> Client
 
-**Purpose:**  
+**Purpose:**
 The server sends LOBBY_WAIT after the first player connects but before a second
 player has joined the game.
 
@@ -274,7 +274,7 @@ player has joined the game.
 
 **Direction:** Server -> Clients
 
-**Purpose:**  
+**Purpose:**
 The server sends GAME_START after two players have successfully joined. The server
 assigns each player an ID and symbol, sends the empty board, and tells both players
 who takes the first turn.
@@ -341,7 +341,7 @@ simple and predictable instead of randomly choosing a player each game.
 
 **Direction:** Client -> Server
 
-**Purpose:**  
+**Purpose:**
 The active player sends MOVE to request placing their symbol in one location on
 the board. The client is only requesting the move. The server decides if the move
 is actually allowed.
@@ -400,7 +400,7 @@ the move was successful. That decision stays with the server.
 
 **Direction:** Server -> Clients
 
-**Purpose:**  
+**Purpose:**
 The server sends STATE_UPDATE to both players after it accepts a valid move.
 This message gives both clients the newest official board and tells them whose
 turn comes next.
@@ -455,7 +455,7 @@ players instead of letting each client update the game state on its own.
 
 **Direction:** Server -> Client
 
-**Purpose:**  
+**Purpose:**
 The server sends ERROR when it cannot accept or process a client's message.
 The error is sent only to the client that caused the problem, and the official
 game state does not change.
@@ -513,7 +513,7 @@ state version, but it leaves the board unchanged.
 
 **Direction:** Client -> Server
 
-**Purpose:**  
+**Purpose:**
 The client sends DISCONNECT when the player intentionally leaves the game.
 The server uses this message to stop waiting for that player and handle the game
 as a player departure.
@@ -562,7 +562,7 @@ an intentional quit and other connection problems later. For this project,
 
 **Direction:** Server -> Clients
 
-**Purpose:**  
+**Purpose:**
 The server sends GAME_OVER when the match has finished. This can happen because
 a player won, the board ended in a draw, or one player left the game.
 
