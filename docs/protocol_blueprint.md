@@ -12,6 +12,52 @@ I chose this because TCP is a continuous byte stream, so one recv() call may not
 equal one complete message. With the length prefix, the receiver knows exactly
 how many bytes belong to the next message.
 
+### Wire Format Example
+
+Each message is sent as:
+
+```text
+[4-byte message length][JSON payload]
+```
+
+The 4-byte length is an unsigned integer in big-endian byte order. The length
+counts only the JSON payload bytes, not the 4-byte prefix.
+
+For example, this compact MOVE message is 138 bytes:
+
+```text
+{"version":1,"msg_type":"MOVE","request_id":"REQ-007","game_id":"GAME-001","player_id":"P1","state_version":2,"payload":{"row":0,"col":2}}
+```
+
+138 in hexadecimal is `0x0000008A`, so the bytes placed on the TCP stream begin
+with:
+
+```text
+00 00 00 8A
+```
+
+A DISCONNECT message in this example is 151 bytes, so its prefix is:
+
+```text
+00 00 00 97
+```
+
+If the two messages arrive back-to-back, the stream looks like:
+
+```text
+00 00 00 8A [138 bytes of MOVE JSON]
+00 00 00 97 [151 bytes of DISCONNECT JSON]
+```
+
+The receiver first reads exactly 4 bytes and converts them to an integer. It then
+keeps reading until that many payload bytes have been collected. After decoding
+that JSON message, the next 4 bytes belong to the next message length.
+
+I chose this because TCP does not preserve application message boundaries. One
+`recv()` might contain part of a message, one complete message, or parts of
+multiple messages.
+
+
 ## Design Decision 2: Server Controls the Game State
 
 I decided that the server will be the only side allowed to change the official
