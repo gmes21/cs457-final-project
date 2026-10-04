@@ -98,7 +98,7 @@ The general message structure is:
   "state_version": 0,
   "payload": {}
 }
-
+```
 ## Message Schema 1: CONNECT
 
 **Direction:** Client -> Server
@@ -133,7 +133,7 @@ player name, but the server is responsible for assigning the official player ID.
     "player_name": "Jason"
   }
 }
-
+```
 ## Message Schema 2: LOBBY_WAIT
 
 **Direction:** Server -> Client
@@ -168,7 +168,7 @@ player has joined the game.
     "message": "Waiting for Player 2"
   }
 }
-
+```
 ## Message Schema 3: GAME_START
 
 **Direction:** Server -> Clients
@@ -235,7 +235,7 @@ simple and predictable instead of randomly choosing a player each game.
     ]
   }
 }
-
+```
 ## Message Schema 4: MOVE
 
 **Direction:** Client -> Server
