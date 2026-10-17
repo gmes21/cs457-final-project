@@ -591,6 +591,7 @@ there is no winner, so `winner_player_id` is `null`.
 | `state_version` | integer | Final official state version of the game. |
 | `payload.result` | string | Must be `"WIN"`, `"DRAW"`, or `"FORFEIT"`. |
 | `payload.winner_player_id` | string or null | Winning player for WIN or FORFEIT. Must be `null` for a draw. |
+| `payload.scores` | object | Current server-owned score for both players after the game result is applied. |
 | `payload.board` | array | Final 3 by 3 board. |
 
 ### Example
@@ -606,6 +607,10 @@ there is no winner, so `winner_player_id` is `null`.
   "payload": {
     "result": "WIN",
     "winner_player_id": "P1",
+    "scores": {
+    "P1": 1,
+    "P2": 0
+},
     "board": [
       ["X", "O", ""],
       ["X", "O", ""],
@@ -614,6 +619,7 @@ there is no winner, so `winner_player_id` is `null`.
   }
 }
 ```
+The server updates the score before sending GAME_OVER. The updated score is included so both players receive the same official score after the game ends.
 I included the final board so both players can see exactly how the game ended.
 The client does not decide the winner itself. It displays the final result that
 was determined by the server.
