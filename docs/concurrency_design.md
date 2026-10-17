@@ -18,7 +18,7 @@ The main server thread continues listening for other clients while the worker th
 
 Both player threads need access to the same Tic-Tac-Toe game. Because of this, some information is shared between the threads.
 
-The shared data includes the board, current player's turn, player information, game status, and score information.
+The shared data includes the board, current player's turn, player information, game status, score information, and the connected client socket list.
 
 The client threads should not keep separate copies of the official game state. The server keeps the official state so both players always use the same game information.
 
@@ -29,6 +29,8 @@ Since two worker threads can access the same game, they could try to change shar
 A worker thread must acquire the lock before checking and changing shared game data. After the operation is finished, the thread releases the lock so another worker thread can use it.
 
 The lock will protect operations such as validating a move, updating the board, changing the current turn, ending the game, and updating scores.
+
+The connected client list is also shared server data. When a client is added or removed, that change should happen while the lock is held so another worker thread does not read the list while it is being changed.
 
 ## Move Critical Section
 

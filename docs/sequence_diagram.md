@@ -22,7 +22,7 @@ sequenceDiagram
             S->>P1: GAME_OVER
             S->>P2: GAME_OVER
         end
-    else Move is invalid
-        S->>P1: ERROR
+    else Move is invalid or out of turn
+        S-->>P1: ERROR - Invalid Move or Not Your Turn
     end
 ```
