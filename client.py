@@ -2,6 +2,23 @@ import socket
 import json
 import struct
 import argparse
+import sys
+
+
+def validate_port(value):
+    try:
+        port = int(value)
+    except ValueError:
+        raise argparse.ArgumentTypeError(
+            "Port must be an integer."
+        )
+
+    if port < 1024 or port > 65535:
+        raise argparse.ArgumentTypeError(
+            "Port must be between 1024 and 65535."
+        )
+
+    return port
 
 
 def parse_args():
@@ -19,9 +36,9 @@ def parse_args():
     parser.add_argument(
         "-p",
         "--port",
-        type=int,
+        type=validate_port,
         required=True,
-        help="Server port number"
+        help="Server port number (1024-65535)"
     )
 
     return parser.parse_args()
@@ -206,9 +223,28 @@ def main():
     request_number = 1
 
     try:
+        try:
+            server_ip = socket.gethostbyname(
+                args.ip
+            )
+
+        except socket.gaierror:
+            print(
+                f"[ERROR] Unable to resolve DNS hostname "
+                f"'{args.ip}'."
+            )
+
+            print(
+                "Please check your Cisco router DNS "
+                "configuration ('ip dns server' / "
+                "'ip host') or verify the hostname spelling."
+            )
+
+            sys.exit(1)
+
         client_socket.connect(
             (
-                args.ip,
+                server_ip,
                 args.port
             )
         )
@@ -314,9 +350,6 @@ def main():
                     "first_turn"
                 )
 
-                # Player 1 receives its ID from
-                # LOBBY_WAIT. Player 2 receives
-                # GAME_START directly.
                 if player_id is None:
                     player_id = "P2"
 
